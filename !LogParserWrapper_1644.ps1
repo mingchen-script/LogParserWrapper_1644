@@ -19,34 +19,26 @@ $g_MaxExports = 99999                 # Max number of 1644 events to export per 
 $g_ColorBar   = $True                 # Can set to $false to speed up excel import & reduce memory requirement. 
 $g_ColorScale = $True                 # Can set to $false to speed up excel import & reduce memory requirement. Color Scale requires '$g_ColorBar = $True' for color index. 
 $ErrorActionPreference = "SilentlyContinue"
-function Set-PivotField { param (
-  $PivotField = $null, $Orientation = $null, $NumberFormat = $null, $Function = $null, $Calculation = $null, $BaseField = $null, $Name = $null, $Position = $null, $Group = $null
-  )
+function Set-PivotField { param ( $PivotField = $null, $Orientation = $null, $NumberFormat = $null, $Function = $null, $Calculation = $null, $Name = $null, $Group = $null )
     if ($null -ne $Orientation) {$PivotField.Orientation = $Orientation}
     if ($null -ne $NumberFormat) {$PivotField.NumberFormat = $NumberFormat}
     if ($null -ne $Function) {$PivotField.Function = $Function}
     if ($null -ne $Calculation) {$PivotField.Calculation = $Calculation}
-    if ($null -ne $BaseField) {$PivotField.BaseField = $BaseField}
     if ($null -ne $Name) {$PivotField.Name = $Name}
-    if ($null -ne $Position) {$PivotField.Position = $Position}
     if ($null -ne $Group) {($PivotField.DataRange.Item($group)).group($true,$true,1,($false, $true, $true, $true, $false, $false, $false)) | Out-Null}
 }
-function Set-PivotPageRows { param (
-    $Sheet = $null, $PivotTable = $null, $Page = $null, $Rows = $null
-  )
-  $xlRowField   = 1 #XlPivotFieldOrientation 
-  $xlPageField  = 3 #XlPivotFieldOrientation 
-  Set-PivotField -PivotField $Sheet.PivotTables("$PivotTable").PivotFields("$Page") -Orientation $xlPageField
-  $i=0
-  ($Rows).foreach({
-    $i++
-    If ($i -lt ($Rows).count) {Set-PivotField -PivotField $Sheet.PivotTables("$PivotTable").PivotFields("$_") -Orientation $xlRowField}
-    else {Set-PivotField -PivotField $Sheet.PivotTables("$PivotTable").PivotFields("$_") -Orientation $xlRowField -Group $i}
-  })
+function Set-PivotPageRows { param ( $Sheet = $null, $PivotTable = $null, $Page = $null, $Rows = $null  )
+    $xlRowField   = 1 #XlPivotFieldOrientation 
+    $xlPageField  = 3 #XlPivotFieldOrientation 
+    Set-PivotField -PivotField $Sheet.PivotTables("$PivotTable").PivotFields("$Page") -Orientation $xlPageField
+    $i=0
+    ($Rows).foreach({
+      $i++
+      If ($i -lt ($Rows).count) {Set-PivotField -PivotField $Sheet.PivotTables("$PivotTable").PivotFields("$_") -Orientation $xlRowField}
+      else {Set-PivotField -PivotField $Sheet.PivotTables("$PivotTable").PivotFields("$_") -Orientation $xlRowField -Group $i}
+    })
 }
-function Set-TableFormats { param (
-  $Sheet = $null, $Table = $null, $ColumnWidth = $null, $label = $null, $Name = $null, $ColorScale = $null, $ColorBar = $null, $SortColumn = $null, $Hide = $null, $ColumnHiLite = $null
-  )
+function Set-TableFormats { param ( $Sheet = $null, $Table = $null, $ColumnWidth = $null, $label = $null, $Name = $null, $ColorScale = $null, $ColorBar = $null, $SortColumn = $null, $Hide = $null, $ColumnHiLite = $null )
   $Sheet.PivotTables("$Table").HasAutoFormat = $False
     $Column = 1
     $ColumnWidth.foreach({ $Sheet.columns.item($Column).columnwidth = $_
@@ -121,15 +113,14 @@ if ($g_LookBackDays -ne 0) { $g_StartTime = (Get-Date).AddDays(0-$g_LookBackDays
       Start-Sleep 5 }
     }
     $LPQuery = New-Object -ComObject MSUtil.LogQuery
-    $null = $LPQuery.ExecuteBatch($Query,$InputFormat,$OutputFormat) | Out-Null
+    $null = $LPQuery.ExecuteBatch($Query,$InputFormat,$OutputFormat) 
   })
   while ((get-service eventlog).status -ne 'Running') { 
     try { Start-Service EventLog -ErrorAction stop }
     catch {  Write-Host 'Unable to start EventLog service, possible persmission issue, try restart script under admin powershell prompt.' -BackgroundColor Red
       Start-Sleep 5 }
   }
-  $null = [System.Runtime.Interopservices.Marshal]::ReleaseComObject($InputFormat) 
-  $null = [System.Runtime.Interopservices.Marshal]::ReleaseComObject($OutputFormat)
+  $null = [System.Runtime.Interopservices.Marshal]::ReleaseComObject($InputFormat) = [System.Runtime.Interopservices.Marshal]::ReleaseComObject($OutputFormat) 
   $null = [System.Runtime.Interopservices.Marshal]::ReleaseComObject($LPQuery)
 #-----Combine CSV(s) into one for faster Excel import
   $OutTitle1 = 'LDAP-1644-Report'
@@ -151,78 +142,70 @@ If (Test-Path $OutFile1) {
     # $Excel.visible = $true
     $Excel.Workbooks.OpenText("$OutFile1")
     $Sheet0 = $Excel.Workbooks[1].Worksheets[1]
-      $null = $Sheet0.Range("A1").AutoFilter()
       $Sheet0.Application.ActiveWindow.SplitRow=1  
       $Sheet0.Application.ActiveWindow.FreezePanes = $true
-      $null = $Sheet0.Columns.AutoFit() 
-      $Sheet0.Columns.Item(3).columnwidth = $Sheet0.Columns.Item(4).columnwidth = $Sheet0.Columns.Item(10).columnwidth = $Sheet0.Columns.Item(11).columnwidth = $Sheet0.Columns.Item(12).columnwidth = 70
-      $Sheet0.Columns.Item('E').numberformat = $Sheet0.Columns.Item('F').numberformat = $Sheet0.Columns.Item('M').numberformat = $Sheet0.Columns.Item('N').numberformat = $Sheet0.Columns.Item('O').numberformat = $Sheet0.Columns.Item('p').numberformat = $Sheet0.Columns.Item('Q').numberformat = $Sheet0.Columns.Item('R').numberformat = "###,###,###,###,###"
+      $null = $Sheet0.Columns.AutoFit() = $Sheet0.Range("A1").AutoFilter()
+        ("C","D","J","K","L").ForEach({$Sheet0.Columns.Item($_).columnwidth = 70})
+        ("E","F","H","M","N","O","P","Q","R").ForEach({$Sheet0.Columns.Item($_).numberformat = "###,###,###,###,###"})
       $Sheet0.Name = $OutTitle1
       $null = $Sheet0.ListObjects.Add(1, $Sheet0.Application.ActiveCell.CurrentRegion, $null ,0)
     #----Pivot Table 1-------------------------------------------------------------------
     Write-Progress -Activity "Creating TopCount StartingNode Pivot table" -PercentComplete (($Step++/$TotalSteps)*100)
     $Sheet1 = $Excel.Workbooks[1].Worksheets.add()
-      $PivotTable1 = $Excel.Workbooks[1].PivotCaches().Create(1,"$OutTitle1!R1C1:R$($Sheet0.UsedRange.Rows.count)C$($Sheet0.UsedRange.Columns.count)",5) 
-      $PivotTable1.CreatePivotTable("Sheet1!R1C1") | Out-Null
+      $null = ($Excel.Workbooks[1].PivotCaches().Create(1,"$OutTitle1!R1C1:R$($Sheet0.UsedRange.Rows.count)C$($Sheet0.UsedRange.Columns.count)",5)).CreatePivotTable("Sheet1!R1C1")
       Set-PivotPageRows -Sheet $sheet1 -PivotTable "PivotTable1" -Page "LDAPServer" -Rows ("StartingNode","Filter","ClientIP","TimeGenerated")
-      Set-PivotField -PivotField $Sheet1.PivotTables("PivotTable1").PivotFields("ClientIP") -Orientation $xlDataField -NumberFormat  $fmtNumber -Name "Search Count" -Position 1
-      Set-PivotField -PivotField $Sheet1.PivotTables("PivotTable1").PivotFields("SearchTimeMS") -Orientation $xlDataField -NumberFormat  $fmtNumber -Function $xlAverage -Name "AvgSearchTime" -Position 2 
-      Set-PivotField -PivotField $Sheet1.PivotTables("PivotTable1").PivotFields("ClientIP") -Orientation $xlDataField -NumberFormat  $fmtPercent -Calculation $xlPercentOfTotal -Name "%GrandTotal" -Position 3
-        Set-TableFormats -Sheet $Sheet1 -Table "PivotTable1" -ColumnWidth (60,12,14,12,14) -label 'StartingNode grouping' -Name '1.TopCount StartingNode' -SortColumn 4 -Hide ('ClientIP','Filter','StartingNode') -ColumnHiLite ('B','D') -ColorBar 'D' -ColorScale 'D'
+        Set-PivotField -PivotField $Sheet1.PivotTables("PivotTable1").PivotFields("ClientIP") -Orientation $xlDataField -NumberFormat  $fmtNumber -Name "Search Count" 
+        Set-PivotField -PivotField $Sheet1.PivotTables("PivotTable1").PivotFields("SearchTimeMS") -Orientation $xlDataField -NumberFormat  $fmtNumber -Function $xlAverage -Name "AvgSearchTime" 
+        Set-PivotField -PivotField $Sheet1.PivotTables("PivotTable1").PivotFields("ClientIP") -Orientation $xlDataField -NumberFormat  $fmtPercent -Calculation $xlPercentOfTotal -Name "%GrandTotal"
+      Set-TableFormats -Sheet $Sheet1 -Table "PivotTable1" -ColumnWidth (60,12,14,12,14) -label 'StartingNode grouping' -Name '1.TopCount StartingNode' -SortColumn 4 -Hide ('ClientIP','Filter','StartingNode') -ColumnHiLite ('B','D') -ColorBar 'D' -ColorScale 'D'
     #----Pivot Table 2-------------------------------------------------------------------
     Write-Progress -Activity "Creating TopCount IP Pivot table" -PercentComplete (($Step++/$TotalSteps)*100)
     $Sheet2 = $Excel.Workbooks[1].Worksheets.add()
-      $PivotTable2 = $Excel.Workbooks[1].PivotCaches().Create(1,"$OutTitle1!R1C1:R$($Sheet0.UsedRange.Rows.count)C$($Sheet0.UsedRange.Columns.count)",5) 
-      $PivotTable2.CreatePivotTable("Sheet2!R1C1") | Out-Null
+    $null = ($Excel.Workbooks[1].PivotCaches().Create(1,"$OutTitle1!R1C1:R$($Sheet0.UsedRange.Rows.count)C$($Sheet0.UsedRange.Columns.count)",5)).CreatePivotTable("Sheet2!R1C1")
       Set-PivotPageRows -Sheet $sheet2 -PivotTable "PivotTable2" -Page "LDAPServer" -Rows ("ClientIP","Filter","TimeGenerated")
-      Set-PivotField -PivotField $Sheet2.PivotTables("PivotTable2").PivotFields("ClientIP") -Orientation $xlDataField -NumberFormat  $fmtNumber -Name "Search Count" -Position 1
-      Set-PivotField -PivotField $Sheet2.PivotTables("PivotTable2").PivotFields("SearchTimeMS") -Orientation $xlDataField -NumberFormat  $fmtNumber -Function $xlAverage -Name "AvgSearchTime" -Position 2 
-      Set-PivotField -PivotField $Sheet2.PivotTables("PivotTable2").PivotFields("ClientIP") -Orientation $xlDataField -NumberFormat  $fmtPercent -Calculation $xlPercentOfTotal -Name "%GrandTotal" -Position 3
-        Set-TableFormats -Sheet $Sheet2 -Table "PivotTable2" -ColumnWidth (60,12,19,12) -label 'IP grouping' -Name '2.TopCount IP' -SortColumn 4 -Hide ('ClientIP','Filter') -ColumnHiLite ('B','D') -ColorBar 'D' -ColorScale 'D'
+        Set-PivotField -PivotField $Sheet2.PivotTables("PivotTable2").PivotFields("ClientIP") -Orientation $xlDataField -NumberFormat  $fmtNumber -Name "Search Count" 
+        Set-PivotField -PivotField $Sheet2.PivotTables("PivotTable2").PivotFields("SearchTimeMS") -Orientation $xlDataField -NumberFormat  $fmtNumber -Function $xlAverage -Name "AvgSearchTime" 
+        Set-PivotField -PivotField $Sheet2.PivotTables("PivotTable2").PivotFields("ClientIP") -Orientation $xlDataField -NumberFormat  $fmtPercent -Calculation $xlPercentOfTotal -Name "%GrandTotal"
+      Set-TableFormats -Sheet $Sheet2 -Table "PivotTable2" -ColumnWidth (60,12,19,12) -label 'IP grouping' -Name '2.TopCount IP' -SortColumn 4 -Hide ('ClientIP','Filter') -ColumnHiLite ('B','D') -ColorBar 'D' -ColorScale 'D'
     #----Pivot Table 3-------------------------------------------------------------------
     Write-Progress -Activity "Creating TopCount Filters Pivot table" -PercentComplete (($Step++/$TotalSteps)*100)
     $Sheet3 = $Excel.Workbooks[1].Worksheets.add()
-      $PivotTable3 = $Excel.Workbooks[1].PivotCaches().Create(1,"$OutTitle1!R1C1:R$($Sheet0.UsedRange.Rows.count)C$($Sheet0.UsedRange.Columns.count)",5) 
-      $PivotTable3.CreatePivotTable("Sheet3!R1C1") | Out-Null
+    $null = ($Excel.Workbooks[1].PivotCaches().Create(1,"$OutTitle1!R1C1:R$($Sheet0.UsedRange.Rows.count)C$($Sheet0.UsedRange.Columns.count)",5)).CreatePivotTable("Sheet3!R1C1")
       Set-PivotPageRows -Sheet $sheet3 -PivotTable "PivotTable3" -Page "LDAPServer" -Rows ("Filter","ClientIP","TimeGenerated")
-      Set-PivotField -PivotField $Sheet3.PivotTables("PivotTable3").PivotFields("ClientIP") -Orientation $xlDataField -NumberFormat  $fmtNumber -Name "Search Count" -Position 1
-      Set-PivotField -PivotField $Sheet3.PivotTables("PivotTable3").PivotFields("SearchTimeMS") -Orientation $xlDataField -NumberFormat  $fmtNumber -Function $xlAverage -Name "AvgSearchTime" -Position 2 
-      Set-PivotField -PivotField $Sheet3.PivotTables("PivotTable3").PivotFields("ClientIP") -Orientation $xlDataField -NumberFormat  $fmtPercent -Calculation $xlPercentOfTotal -Name "%GrandTotal" -Position 3
-        Set-TableFormats -Sheet $Sheet3 -Table "PivotTable3" -ColumnWidth (70,12,19,12) -label 'Filter grouping' -Name '3.TopCount Filters' -SortColumn 4 -Hide ('ClientIP','Filter') -ColumnHiLite ('B','D') -ColorBar 'D' -ColorScale 'D'
+        Set-PivotField -PivotField $Sheet3.PivotTables("PivotTable3").PivotFields("ClientIP") -Orientation $xlDataField -NumberFormat  $fmtNumber -Name "Search Count" 
+        Set-PivotField -PivotField $Sheet3.PivotTables("PivotTable3").PivotFields("SearchTimeMS") -Orientation $xlDataField -NumberFormat  $fmtNumber -Function $xlAverage -Name "AvgSearchTime" 
+        Set-PivotField -PivotField $Sheet3.PivotTables("PivotTable3").PivotFields("ClientIP") -Orientation $xlDataField -NumberFormat  $fmtPercent -Calculation $xlPercentOfTotal -Name "%GrandTotal"
+      Set-TableFormats -Sheet $Sheet3 -Table "PivotTable3" -ColumnWidth (70,12,19,12) -label 'Filter grouping' -Name '3.TopCount Filters' -SortColumn 4 -Hide ('ClientIP','Filter') -ColumnHiLite ('B','D') -ColorBar 'D' -ColorScale 'D'
     #----Pivot Table 4-------------------------------------------------------------------
     Write-Progress -Activity "Creating TopTime IP Pivot table" -PercentComplete (($Step++/$TotalSteps)*100)
     $Sheet4 = $Excel.Workbooks[1].Worksheets.add()
-      $PivotTable4 = $Excel.Workbooks[1].PivotCaches().Create(1,"$OutTitle1!R1C1:R$($Sheet0.UsedRange.Rows.count)C$($Sheet0.UsedRange.Columns.count)",5) 
-      $PivotTable4.CreatePivotTable("Sheet4!R1C1") | Out-Null
+    $null = ($Excel.Workbooks[1].PivotCaches().Create(1,"$OutTitle1!R1C1:R$($Sheet0.UsedRange.Rows.count)C$($Sheet0.UsedRange.Columns.count)",5)).CreatePivotTable("Sheet4!R1C1")
       Set-PivotPageRows -Sheet $sheet4 -PivotTable "PivotTable4" -Page "LDAPServer" -Rows ("ClientIP","Filter","TimeGenerated")
-      Set-PivotField -PivotField $Sheet4.PivotTables("PivotTable4").PivotFields("SearchTimeMS") -Orientation $xlDataField -NumberFormat  $fmtNumber -Function $xlSum -Name "Total SearchTime" -Position 1
-      Set-PivotField -PivotField $Sheet4.PivotTables("PivotTable4").PivotFields("ClientIP") -Orientation $xlDataField -NumberFormat  $fmtNumber -Name "Search Count" -Position 2 
-      Set-PivotField -PivotField $Sheet4.PivotTables("PivotTable4").PivotFields("SearchTimeMS") -Orientation $xlDataField -NumberFormat  $fmtPercent -Calculation $xlPercentOfTotal -Name "%GrandTotal" -Position 3
-        Set-TableFormats -Sheet $Sheet4 -Table "PivotTable4" -ColumnWidth (50,21,12,19) -label 'IP grouping' -Name '4.TopTime IP' -SortColumn 4 -Hide ('ClientIP','Filter') -ColumnHiLite ('B','D') -ColorBar 'D' -ColorScale 'D'
+        Set-PivotField -PivotField $Sheet4.PivotTables("PivotTable4").PivotFields("SearchTimeMS") -Orientation $xlDataField -NumberFormat  $fmtNumber -Function $xlSum -Name "Total SearchTime" 
+        Set-PivotField -PivotField $Sheet4.PivotTables("PivotTable4").PivotFields("ClientIP") -Orientation $xlDataField -NumberFormat  $fmtNumber -Name "Search Count" 
+        Set-PivotField -PivotField $Sheet4.PivotTables("PivotTable4").PivotFields("SearchTimeMS") -Orientation $xlDataField -NumberFormat  $fmtPercent -Calculation $xlPercentOfTotal -Name "%GrandTotal"
+      Set-TableFormats -Sheet $Sheet4 -Table "PivotTable4" -ColumnWidth (50,21,12,19) -label 'IP grouping' -Name '4.TopTime IP' -SortColumn 4 -Hide ('ClientIP','Filter') -ColumnHiLite ('B','D') -ColorBar 'D' -ColorScale 'D'
     #----Pivot Table 5-------------------------------------------------------------------
     Write-Progress -Activity "Creating TopTime Filter Pivot table" -PercentComplete (($Step++/$TotalSteps)*100)
     $Sheet5 = $Excel.Workbooks[1].Worksheets.add()
-      $PivotTable5 = $Excel.Workbooks[1].PivotCaches().Create(1,"$OutTitle1!R1C1:R$($Sheet0.UsedRange.Rows.count)C$($Sheet0.UsedRange.Columns.count)",5) 
-      $PivotTable5.CreatePivotTable("Sheet5!R1C1") | Out-Null
+    $null = ($Excel.Workbooks[1].PivotCaches().Create(1,"$OutTitle1!R1C1:R$($Sheet0.UsedRange.Rows.count)C$($Sheet0.UsedRange.Columns.count)",5)).CreatePivotTable("Sheet5!R1C1")
       Set-PivotPageRows -Sheet $sheet5 -PivotTable "PivotTable5" -Page "LDAPServer" -Rows ("Filter","ClientIP","TimeGenerated")
-      Set-PivotField -PivotField $Sheet5.PivotTables("PivotTable5").PivotFields("SearchTimeMS") -Orientation $xlDataField -NumberFormat  $fmtNumber -Function $xlSum -Name "Total SearchTime" -Position 1
-      Set-PivotField -PivotField $Sheet5.PivotTables("PivotTable5").PivotFields("ClientIP") -Orientation $xlDataField -NumberFormat  $fmtNumber -Name "Search Count" -Position 2 
-      Set-PivotField -PivotField $Sheet5.PivotTables("PivotTable5").PivotFields("SearchTimeMS") -Orientation $xlDataField -NumberFormat  $fmtPercent -Calculation $xlPercentOfTotal -Name "%GrandTotal" -Position 3
-        Set-TableFormats -Sheet $Sheet5 -Table "PivotTable5" -ColumnWidth (70,21,12,19) -label 'IP grouping' -Name '5.TopTime Filter' -SortColumn 4 -Hide ('ClientIP','Filter') -ColumnHiLite ('B','D') -ColorBar 'D' -ColorScale 'D'
+        Set-PivotField -PivotField $Sheet5.PivotTables("PivotTable5").PivotFields("SearchTimeMS") -Orientation $xlDataField -NumberFormat  $fmtNumber -Function $xlSum -Name "Total SearchTime" 
+        Set-PivotField -PivotField $Sheet5.PivotTables("PivotTable5").PivotFields("ClientIP") -Orientation $xlDataField -NumberFormat  $fmtNumber -Name "Search Count" 
+        Set-PivotField -PivotField $Sheet5.PivotTables("PivotTable5").PivotFields("SearchTimeMS") -Orientation $xlDataField -NumberFormat  $fmtPercent -Calculation $xlPercentOfTotal -Name "%GrandTotal"
+      Set-TableFormats -Sheet $Sheet5 -Table "PivotTable5" -ColumnWidth (70,21,12,19) -label 'IP grouping' -Name '5.TopTime Filter' -SortColumn 4 -Hide ('ClientIP','Filter') -ColumnHiLite ('B','D') -ColorBar 'D' -ColorScale 'D'
     #---General Tab Operations-------------------------------------------------------------------
-    $Sheet1.Tab.ColorIndex = $Sheet2.Tab.ColorIndex = $Sheet3.Tab.ColorIndex = 35
-    $Sheet4.Tab.ColorIndex = $Sheet5.Tab.ColorIndex = 36
+    ($Sheet1,$Sheet2,$Sheet3).ForEach{$_.Tab.ColorIndex = 35}
+    ($Sheet4,$Sheet5).ForEach{$_.Tab.ColorIndex = 36}
       $WorkSheetNames = New-Object System.Collections.ArrayList  #---Sort by sheetName-
       foreach($WorkSheet in $Excel.Workbooks[1].Worksheets) { $null = $WorkSheetNames.add($WorkSheet.Name) }
         $null = $WorkSheetNames.Sort()
         For ($i=0; $i -lt $WorkSheetNames.Count-1; $i++){ ($Excel.Workbooks[1].Worksheets.Item($WorkSheetNames[$i])).Move($Excel.Workbooks[1].Worksheets.Item($i+1)) }
     $Sheet1.Activate()
-    #----Save and clean up
-      $Excel.Workbooks[1].SaveAs($ScriptPath+'\'+$TimeStamp+'-'+$OutTitle1,51)
-        $iCSV = "$ScriptPath\$TimeStamp-$OutTitle1.csv"
-        Remove-Item $iCSV
-      $Excel.visible = $true
-      $null = [System.Runtime.Interopservices.Marshal]::ReleaseComObject($Excel)
+    $Excel.Workbooks[1].SaveAs($ScriptPath+'\'+$TimeStamp+'-'+$OutTitle1,51)
+    Remove-Item "$ScriptPath\$TimeStamp-$OutTitle1.csv"
+    $Excel.visible = $true
+    $null = [System.Runtime.Interopservices.Marshal]::ReleaseComObject($Excel)
       # Stop-process -Name Excel 
 } else {
 	Write-Host 'No LogParser CSV found. Please confirm evtx contain event 1644.' -ForegroundColor Red
