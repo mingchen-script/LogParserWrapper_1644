@@ -146,7 +146,8 @@ If (Test-Path $OutFile1) {
       $Sheet0.Application.ActiveWindow.FreezePanes = $true
       $null = $Sheet0.Columns.AutoFit() = $Sheet0.Range("A1").AutoFilter()
         ("C","D","J","K","L").ForEach({$Sheet0.Columns.Item($_).columnwidth = 70})
-        ("E","F","H","M","N","O","P","Q","R").ForEach({$Sheet0.Columns.Item($_).numberformat = "###,###,###,###,###"})
+        ("E","F","H","M","N","O","P","Q","R").ForEach({$Sheet0.Columns.Item($_).numberformat = $fmtNumber})
+        $Sheet0.Columns.Item("B").numberformat = "m/d/yyyy h:mm:s AM/PM"
       $Sheet0.Name = $OutTitle1
       $null = $Sheet0.ListObjects.Add(1, $Sheet0.Application.ActiveCell.CurrentRegion, $null ,0)
     #----Pivot Table 1-------------------------------------------------------------------
