@@ -4,7 +4,7 @@
     #    1. Script calls LogParser to scans all event 1644 evtx in input directory, exact event data from event 1644, export to CSV.
     #    2. Script calls into Excel to import resulting CSV, create pivot tables for common ldap workload analysis. Delete CSV afterward.
 	#
-	# LogParserWrapper_1644.ps1 v0.6 11/16 (added DataBar)
+	# LogParserWrapper_1644.ps1 v0.7 11/22(split set-PivotPageRows)
 	#		Steps: 
 	#   	1. Install LogParser 2.2 from https://www.microsoft.com/en-us/download/details.aspx?id=24659
 	#     	Note: More about LogParser2.2 https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-xp/bb878032(v=technet.10)?redirectedfrom=MSDN
@@ -12,3 +12,4 @@
 	#     		Tip: When copying Directory Service EVTX, filter on event 1644 to reduce EVTX size for quicker transfer. 
 	#					Note: Script will process all *.EVTX in script directory when run.
 	#   	3. Run script
+
